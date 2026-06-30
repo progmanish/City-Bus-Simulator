@@ -72,5 +72,6 @@
         "*.slnx": "*.csproj"
     },
     "dotnet.defaultSolution": "Bus-Simulator.slnx",
-    "dotnet.enableWorkspaceBasedDevelopment": false
+    "dotnet.enableWorkspaceBasedDevelopment": false,
+    "editor.fontFamily": "Consolas"
 }
