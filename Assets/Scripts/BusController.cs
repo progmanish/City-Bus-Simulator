@@ -36,12 +36,19 @@ public class BusController : MonoBehaviour
     [SerializeField] private float minSteerAngle = 10f;
     public float steerSpeed = 5;
 
+    [Header("Fuel System")]
+    public float maxFuel = 100f;
+    public float currentFuel;
+
+    public float idleConsumption = 0.02f;
+    public float runningConsumption = 0.06f;
+
+    private bool isFuelEmpty = false;
     private bool throtle_Press;
     private bool brake_Press;
     private float steer_Input = 0;
     private float currentTorque;
     private Rigidbody rb;
-
 
     void Start()
     {
@@ -55,15 +62,34 @@ public class BusController : MonoBehaviour
         {
             GameManager.instance.OnGameplaySceneLoaded(this);
         }
+        currentFuel = maxFuel;
     }
 
     void Update()
     {
         InReverse = GameManager.instance.gear == Gear.Reverse;
+        currentFuel = Mathf.Clamp(currentFuel, 0, maxFuel);
+        isFuelEmpty = currentFuel <= 0;
+        currentFuel -= throtle_Press ? runningConsumption * Time.deltaTime : idleConsumption * Time.deltaTime;
+
     }
 
     private void FixedUpdate()
     {
+        if (isFuelEmpty)
+        {
+            RL1.motorTorque = 0;
+            RR1.motorTorque = 0;
+            FL.brakeTorque = brakeForce * 0.1f;
+            FR.brakeTorque = brakeForce * 0.1f;
+            RL1.brakeTorque = brakeForce * 0.1f;
+            RR1.brakeTorque = brakeForce * 0.1f;
+            HandleBrakes();
+            HandleSteering();
+            HandleWheels();
+            GetComponent<AudioSource>().Stop();
+            return;
+        }
         HandleThrotle();
         HandleBrakes();
         HandleSteering();

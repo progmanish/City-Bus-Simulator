@@ -498,6 +498,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4252043398195017374, guid: f76203b2669a3664e95982c3c5cf792b, type: 3}
+      propertyPath: playerMoney
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5243590362931980630, guid: f76203b2669a3664e95982c3c5cf792b, type: 3}
       propertyPath: m_Name
       value: --- GameManager
@@ -859,7 +863,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: Gameplay
+          m_StringArgument: SelectionMenu
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &810818114

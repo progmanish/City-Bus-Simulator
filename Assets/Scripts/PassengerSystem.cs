@@ -61,11 +61,20 @@ public class PassengerSystem : MonoBehaviour
                 NPCManager.instance.SpawnBoardNPC();
             }
             UIManager.instance.SetPassengerText(currentPassengers, maxCapacity);
+			MissionManager.instance.BoardPassenger(1);
             yield return new WaitForSeconds(boardInterval);
         }
 
 		boardingFinished = true;
+		MissionManager.instance.AddIncone(currentPassengers);
         UIManager.instance.SetStatusText("Boarding Complete. Close the doors...");
+
+		if (UIManager.instance.isFinalStop)
+		{
+			UIManager.instance.ShowSummary(
+				MissionManager.instance.MissionName(), MissionManager.instance.Passengers(), MissionManager.instance.Income());
+			GameManager.instance.AddMoney(MissionManager.instance.Income());
+		}
     }
 
     public void ResetBoardingState()

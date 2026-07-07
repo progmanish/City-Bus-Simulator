@@ -40,7 +40,18 @@ public class FollowCamera : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (target == null) return;
+        if (target == null)
+        {
+            SetTarget();
+            if (target == null) return;
+
+            // Snap camera to target immediately when first set
+            Quaternion targetRot = Quaternion.Euler(0, target.eulerAngles.y, 0);
+            Vector3 targetPos = target.position + targetRot * offset;
+            transform.position = targetPos;
+            transform.LookAt(target.position + Vector3.up * 1.5f);
+            currentYaw = target.eulerAngles.y;
+        }
 
         HandleManualRot();
         HandleAutoRot();
@@ -87,7 +98,11 @@ public class FollowCamera : MonoBehaviour
     {
         if (!target && GameManager.instance != null && GameManager.instance.activeBusController != null)
         {
-            target = GameManager.instance.activeBusController.transform;
+            target = GameManager.instance.activeBusController.transform.Find("FollowTarget");
+            if (target == null)
+            {
+                target = GameManager.instance.activeBusController.transform;
+            }
         }
     }
 }

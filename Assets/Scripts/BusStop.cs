@@ -14,9 +14,6 @@ public class BusStop : MonoBehaviour
 	// Start is called before the first frame update
 	void Start()
 	{
-		if (MissionManager.instance != null)
-			MissionManager.instance.RegisterStop(this);
-
         if (stopCamera != null)
         {
             stopCamera.DisableCamera();

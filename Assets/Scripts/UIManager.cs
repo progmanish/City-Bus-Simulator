@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,14 +13,25 @@ public class UIManager : MonoBehaviour
 	public GameObject movementControlsPanel;
 
 	public DistanceHUD distanceHUD;
+	public GameObject refuelButton;
 
+	[Header("Passenger HUD")]
 	public GameObject passengerHUD;
 	public Text statusText;
 	public Text passengerCountText;
 
+    [Header("Mission Summary")]
+    public GameObject MissionSummaryPanel;
+	public Text routeName;
+	public Text passengerServed;
+	public Text income;
+
+	public GameObject routeSelectionPanel;
+	public TextMeshProUGUI text_Money;
+
 	public bool gatesOpen;
 	public bool isFinalStop = false;
-	public bool insideStopTrigger;
+	private bool insideStopTrigger;
 
     private void Awake()
     {
@@ -51,6 +63,7 @@ public class UIManager : MonoBehaviour
 				drivingDashboard.SetActive(false);
 			}
 		}
+		text_Money.text = GameManager.instance.GetPlayerMoney().ToString();
 	}
 
     public void PauseButton() => GameManager.instance.PauseGame();
@@ -107,6 +120,19 @@ public class UIManager : MonoBehaviour
         GameManager.instance.activeBusController.animator.SetBool("Open", false);
 
     }
+
+	public void ShowSummary(string name, int passenger, int missionEarning)
+	{
+		MissionSummaryPanel.SetActive(true);
+		routeName.text = $"Route : {name}";
+		passengerServed.text = $"Passenger Served : {passenger}";
+		income.text = $"Total Income : ${missionEarning}";
+	}
+
+	public void SelectRoute(int index)
+	{
+		MissionManager.instance.SelectRoute(index);
+	}
 
 	public void ShowHUD()
 	{

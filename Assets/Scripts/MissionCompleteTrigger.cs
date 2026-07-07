@@ -18,10 +18,23 @@ public class MissionCompleteTrigger : MonoBehaviour
         {
             Debug.Log("<color=red>Mission failed: Skipped stops!!</color>");
             MissionManager.instance.FailMission();
+            return;
         }
 
         used = true;
         MissionManager.instance.CompleteMission();
+
+        if (UIManager.instance != null)
+        {
+            UIManager.instance.EnterStopZone();
+            UIManager.instance.ShowHUD();
+            UIManager.instance.SetStatusText("Arrived at final stop. Open doors to deboard...");
+            PassengerSystem ps = bus.GetComponent<PassengerSystem>() ?? bus.GetComponentInParent<PassengerSystem>();
+            if (ps != null)
+            {
+                UIManager.instance.SetPassengerText(ps.currentPassengers, ps.maxCapacity);
+            }
+        }
 
         Debug.Log("<color=cyan>Mission Completed!</color>");
     }

@@ -42,12 +42,12 @@ public class NPCManager : MonoBehaviour
 
     public void SpawnBoardNPC()
 	{
-		var _npc = Instantiate(outsideNPCPrefab, outsideSpawnPoint.position, Quaternion.identity);
+		var _npc = Instantiate(outsideNPCPrefab, outsideSpawnPoint.position, outsideSpawnPoint.localRotation);
 		StartCoroutine(MoveNPC(_npc.transform, insideSpawnPonit.position, true));
 	}	
     public void SpawnDeboardNPC()
     {
-        var _npc = Instantiate(insideNPCPrefab, insideSpawnPonit.position, Quaternion.identity);
+        var _npc = Instantiate(insideNPCPrefab, insideSpawnPonit.position, insideSpawnPonit.localRotation);
         StartCoroutine(MoveNPC(_npc.transform, sidewalkPoint.position, false));
     }
 

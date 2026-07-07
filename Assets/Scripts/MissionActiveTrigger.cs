@@ -14,8 +14,16 @@ public class MissionActiveTrigger : MonoBehaviour
         if (MissionManager.instance == null) return;
 
         used = true;
-        MissionManager.instance.StartMission();
+        UIManager.instance.routeSelectionPanel.SetActive(true);
 
         Debug.Log("<color=cyan>Mission Active!</color>");
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        BusController bus = other.GetComponent<BusController>() ?? other.GetComponentInParent<BusController>();
+        if (bus == null) return;
+
+        UIManager.instance.routeSelectionPanel.SetActive(false);
     }
 }
