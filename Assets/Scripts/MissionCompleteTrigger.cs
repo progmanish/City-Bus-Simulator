@@ -22,6 +22,7 @@ public class MissionCompleteTrigger : MonoBehaviour
         }
 
         used = true;
+        bus.OnOffDirectionIndictor(false);
         MissionManager.instance.CompleteMission();
 
         if (UIManager.instance != null)

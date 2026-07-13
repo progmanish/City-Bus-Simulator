@@ -12,8 +12,8 @@ public class PassengerSystem : MonoBehaviour
 	[Range(0f, 1f)]
 	public float maxDeboardPercent = 0.4f;
 
-	public float boardInterval = 0.6f;
-	public float deboardInterval = 0.6f;
+	public float boardInterval = 1f;
+	public float deboardInterval = 1f;
 
 	public bool boardingFinished { get; set; }
 	private int toBoard;
@@ -24,14 +24,23 @@ public class PassengerSystem : MonoBehaviour
 		boardingFinished = false;
 
 		UIManager.instance.ShowHUD();
-		UIManager.instance.SetStatusText("Boarding Passengers...");
-		UIManager.instance.SetPassengerText(currentPassengers, maxCapacity);
 
 		toDeboard = UIManager.instance.isFinalStop ? currentPassengers : Mathf.RoundToInt(currentPassengers * Random.Range(0f, maxDeboardPercent));
 		toBoard = Random.Range(minBoard, maxBoard + 1);
 		toBoard = Mathf.Min(toBoard, maxCapacity - currentPassengers + toDeboard);
 
 		if (UIManager.instance.isFinalStop) toBoard = 0;
+
+		if (toDeboard > 0)
+		{
+			UIManager.instance.SetStatusText("Deboarding Passengers...");
+		}
+		else
+		{
+			UIManager.instance.SetStatusText("Boarding Passengers...");
+		}
+
+		UIManager.instance.SetPassengerText(currentPassengers, maxCapacity);
 		StartCoroutine(DeboardRoutine());
 	}
 
@@ -53,6 +62,11 @@ public class PassengerSystem : MonoBehaviour
 
 	IEnumerator BoardRoutine()
 	{
+		if (toBoard > 0)
+		{
+			UIManager.instance.SetStatusText("Boarding Passengers...");
+		}
+
 		for (int i = 0; i < toBoard; i++)
 		{
 			currentPassengers++;

@@ -20,6 +20,10 @@ public class BusController : MonoBehaviour
     public Transform RL2_Mesh;
     public Transform RR2_Mesh;
 
+    [Header("Others")]
+    [SerializeField] private GameObject arrows;
+    [SerializeField] public GameObject headLights;
+
     [Header("Bus Settings")]
     public float busTorque = 1500f;
     public float brakeForce = 4000f;
@@ -32,6 +36,8 @@ public class BusController : MonoBehaviour
     [SerializeField] public float maxSpeed = 40f;
 
     [Header("Steering Tuning")]
+    [SerializeField] private Transform steerMesh;
+    [SerializeField] private float steerMeshMultiplier = 10f;
     [SerializeField] private float maxSteerAngle = 30f;
     [SerializeField] private float minSteerAngle = 10f;
     public float steerSpeed = 5;
@@ -39,6 +45,7 @@ public class BusController : MonoBehaviour
     [Header("Fuel System")]
     public float maxFuel = 100f;
     public float currentFuel;
+    public bool isEngineOn = true;
 
     public float idleConsumption = 0.02f;
     public float runningConsumption = 0.06f;
@@ -49,6 +56,7 @@ public class BusController : MonoBehaviour
     private float steer_Input = 0;
     private float currentTorque;
     private Rigidbody rb;
+    private Quaternion initialSteerRotation;
 
     void Start()
     {
@@ -63,6 +71,13 @@ public class BusController : MonoBehaviour
             GameManager.instance.OnGameplaySceneLoaded(this);
         }
         currentFuel = maxFuel;
+
+        if (steerMesh != null)
+        {
+            initialSteerRotation = steerMesh.localRotation;
+        }
+        OnOffDirectionIndictor(false);
+        if (headLights != null) headLights.SetActive(false);
     }
 
     void Update()
@@ -70,13 +85,15 @@ public class BusController : MonoBehaviour
         InReverse = GameManager.instance.gear == Gear.Reverse;
         currentFuel = Mathf.Clamp(currentFuel, 0, maxFuel);
         isFuelEmpty = currentFuel <= 0;
-        currentFuel -= throtle_Press ? runningConsumption * Time.deltaTime : idleConsumption * Time.deltaTime;
-
+        if (isEngineOn && !isFuelEmpty)
+        {
+            currentFuel -= throtle_Press ? runningConsumption * Time.deltaTime : idleConsumption * Time.deltaTime;
+        }
     }
 
     private void FixedUpdate()
     {
-        if (isFuelEmpty)
+        if (isFuelEmpty || !isEngineOn)
         {
             RL1.motorTorque = 0;
             RR1.motorTorque = 0;
@@ -87,7 +104,11 @@ public class BusController : MonoBehaviour
             HandleBrakes();
             HandleSteering();
             HandleWheels();
-            GetComponent<AudioSource>().Stop();
+            AudioSource source = GetComponentInChildren<AudioSource>();
+            if (source != null)
+            {
+                source.Stop();
+            }
             return;
         }
         HandleThrotle();
@@ -139,10 +160,16 @@ public class BusController : MonoBehaviour
         float speed = rb.linearVelocity.magnitude * 3.6f;
         float speedFactor = Mathf.InverseLerp(0, maxSpeed, speed);
         float steerAngle = Mathf.Lerp(maxSteerAngle, minSteerAngle, speedFactor);
-        float finalSteering = steer_Input * steerAngle;
+        float finalSteering = Mathf.Clamp(steer_Input * steerAngle, -maxSteerAngle, maxSteerAngle);
 
         FL.steerAngle = finalSteering;
         FR.steerAngle = finalSteering;
+
+        if (steerMesh)
+        {
+            Quaternion baseRotation = (initialSteerRotation != default) ? initialSteerRotation : steerMesh.localRotation;
+            steerMesh.localRotation = baseRotation * Quaternion.Euler(0f, 0f, finalSteering * steerMeshMultiplier);
+        }
     }
 
     void HandleWheels()
@@ -167,13 +194,12 @@ public class BusController : MonoBehaviour
     public void ThrotleInput(bool _value) => throtle_Press = _value;
     public void BrakeInput(bool _value) => brake_Press = _value;
     public void SteeringInput(float _value) => steer_Input = _value;
+    public void OnOffDirectionIndictor(bool _value) => arrows.SetActive(_value);
 
-    private void OnGUI()
+    public string GetSpeedInKmPerHour()
     {
-        GUIStyle gUIStyle = new GUIStyle();
-        gUIStyle.fontSize = 32;
-
         float speedKmh = rb.linearVelocity.magnitude * 3.6f;
-        GUI.Label(new Rect(50, 50, 200, 20), "Speed: " + speedKmh.ToString("F1"), gUIStyle);
+        return Mathf.RoundToInt(speedKmh).ToString();
     }
+
 }

@@ -54,7 +54,7 @@ public class SteeringWheel : MonoBehaviour, IPointerDownHandler, IDragHandler, I
 
 	void ApplyRotation()
 	{
-		rectTransform.localRotation = Quaternion.Euler(0f, 0f, currentAngle);
+		rectTransform.localRotation = Quaternion.Euler(0f, 0f, Mathf.Clamp(currentAngle, -maxRotation, maxRotation));
 		steeringAmount = -currentAngle / maxRotation;
 		GameManager.instance.SetSteering(steeringAmount);
 	}

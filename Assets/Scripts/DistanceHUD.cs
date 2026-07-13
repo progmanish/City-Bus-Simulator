@@ -5,7 +5,8 @@ public class DistanceHUD : MonoBehaviour
 {
 	public Transform target;
 	public TMP_Text text_Distance;
-	public float updateInterval = 0.25f;
+	public TMP_Text text_DistanceUnit;
+    public float updateInterval = 0.25f;
 
 	Transform bus;
 	float timer;
@@ -30,7 +31,7 @@ public class DistanceHUD : MonoBehaviour
 		{
 			if (text_Distance != null)
 			{
-				text_Distance.text = "0m";
+				text_Distance.text = "0";
 			}
 			return;
 		}
@@ -43,12 +44,14 @@ public class DistanceHUD : MonoBehaviour
 		{
 			if (distance >= 1000f)
 			{
-				text_Distance.text = (distance / 1000f).ToString("F1") + "km";
+				text_Distance.text = (distance / 1000f).ToString("F1");
+				text_DistanceUnit.text = "km";
 			}
 			else
 			{
-				text_Distance.text = Mathf.RoundToInt(distance) + "m";
-			}
+				text_Distance.text = Mathf.RoundToInt(distance).ToString();
+                text_DistanceUnit.text = "m";
+            }
 		}
 	}
 

@@ -5,7 +5,6 @@ public class BusDirectionArrow : MonoBehaviour
 	public Transform target;
 	public float rotationSpeed = 8f;
 
-	// Update is called once per frame
 	void Update()
 	{
 		if (target == null) return;
@@ -19,13 +18,6 @@ public class BusDirectionArrow : MonoBehaviour
 
 	}
 
-	public void SetTarget(Transform stop)
-	{
-		target = stop;
-	}
-
-	public void ClearTarget()
-	{
-		target = null;
-	}
+    public void SetTarget(Transform stop) => target = stop;
+    public void ClearTarget() => target = null;
 }

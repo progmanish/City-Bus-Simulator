@@ -1,21 +1,28 @@
+using System.Collections;
 using UnityEngine;
 
 public class CameraController : MonoBehaviour
 {
-	public GameObject exteriorCamera;
-	public GameObject interiorCamera;
+	private GameObject exteriorCamera;
+	private GameObject interiorCamera;
 
-	public InteriorCameraController interiorCameraController;
+	private InteriorCameraController interiorCameraController;
 
 	bool isInterior;
 	// Start is called before the first frame update
 	void Start()
 	{
-		exteriorCamera = GameObject.FindAnyObjectByType<FollowCamera>().gameObject;
-		interiorCameraController = Object.FindAnyObjectByType<InteriorCameraController>();
-		interiorCamera = interiorCameraController.gameObject;
-		SetExterior();
+		StartCoroutine(FindAndSet());
 	}
+
+	IEnumerator FindAndSet()
+	{
+		yield return new WaitForSeconds(0.1f);
+        exteriorCamera = GameObject.FindAnyObjectByType<FollowCamera>().gameObject;
+        if (interiorCamera == null) interiorCameraController = GameObject.FindAnyObjectByType<InteriorCameraController>();
+        interiorCamera = interiorCameraController.gameObject;
+        SetExterior();
+    }
 
 	public void ToogleCamera()
 	{

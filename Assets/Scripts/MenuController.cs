@@ -7,15 +7,9 @@ public class MenuController : MonoBehaviour
 	{
 		GameManager.instance.state = GameState.MainMenu;
 	}
-
-	// Update is called once per frame
-	void Update()
+	public void StartGame(string _name)
 	{
-
-	}
-
-	public void StartGame(string name)
-	{
-		GameManager.instance.LoadGameScene(name);
+		GameManager.instance.LoadGameScene(_name);
+		SoundManager.instance.PlayUIButtonClicks();
 	}
 }

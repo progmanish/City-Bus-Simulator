@@ -40,7 +40,7 @@ public class BusAudioController : MonoBehaviour
 	{
 		if (GameManager.instance == null) return;
 
-		if (GameManager.instance.state != GameState.Driving)
+		if (GameManager.instance.state != GameState.Driving || _controller.currentFuel <= 0f || !_controller.isEngineOn)
 		{
 			PauseAudio();
 			return;
@@ -96,4 +96,12 @@ public class BusAudioController : MonoBehaviour
         if (reverseBeepAudio != null && _controller != null && _controller.InReverse && !reverseBeepAudio.isPlaying)
             reverseBeepAudio.Play();
     }
+
+	public void EngineStartOff(bool active)
+	{
+		if (_controller != null)
+		{
+			_controller.isEngineOn = active;
+		}
+	}
 }
