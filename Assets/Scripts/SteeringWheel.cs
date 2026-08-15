@@ -25,8 +25,11 @@ public class SteeringWheel : MonoBehaviour, IPointerDownHandler, IDragHandler, I
 	{
 		if(!isDragging)
 		{
-			currentAngle = Mathf.MoveTowards(currentAngle, 0f, returnSpeed * Time.deltaTime);
-			ApplyRotation();
+			if (currentAngle != 0f)
+			{
+				currentAngle = Mathf.MoveTowards(currentAngle, 0f, returnSpeed * Time.deltaTime);
+				ApplyRotation();
+			}
 		}
 	}
 

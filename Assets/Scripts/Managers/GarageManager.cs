@@ -24,6 +24,7 @@ public class GarageManager : MonoBehaviour
 
     int currentIndex = 0;
 	GameObject currentPreview;
+	private int cachedMoney = -1;
 
     private void Start()
     {
@@ -70,7 +71,12 @@ public class GarageManager : MonoBehaviour
 
     private void Update()
     {
-		text_Money.text = GameManager.instance.GetPlayerMoney().ToString();
+		int currentMoney = GameManager.instance.GetPlayerMoney();
+		if (currentMoney != cachedMoney)
+		{
+			cachedMoney = currentMoney;
+			if (text_Money != null) text_Money.text = currentMoney.ToString();
+		}
     }
 
     public void NextBus()
@@ -123,7 +129,7 @@ public class GarageManager : MonoBehaviour
 		}
 
 		BusData bus = busDatabase.buses[currentIndex];
-		bool purchased = PlayerPrefs.GetInt(bus.busID, 0) == 1;
+		bool purchased = SaveService.IsBusUnlocked(bus.busID);
         SoundManager.instance.PlayUIButtonClicks();
 
         if (!purchased) return;
@@ -153,24 +159,22 @@ public class GarageManager : MonoBehaviour
 	public void PurchaseBus()
 	{
 		BusData bus = busDatabase.buses[currentIndex];
-		int playerMoney = PlayerPrefs.GetInt("Player_Money", 0);
-
-		if (playerMoney < bus.price)
+		if (GameManager.instance.SpendMoney(bus.price))
 		{
-			//	popup message
-			Debug.Log("Not enough money!!");
-			return;
+			SoundManager.instance.PlayUIButtonClicks();
+			GameManager.instance.UnlockedBus(bus.busID);
+			UpdatePurchaseState(bus);
 		}
-		playerMoney -= bus.price;
-        SoundManager.instance.PlayUIButtonClicks();
-        PlayerPrefs.SetInt("Player_Money", playerMoney);
-		GameManager.instance.UnlockedBus(bus.busID);
-		UpdatePurchaseState(bus);
+		else
+		{
+			// popup message
+			//Debug.Log("Not enough money!!");
+		}
 	}
 	
 	void UpdatePurchaseState(BusData bus)
 	{
-		bool purchase = PlayerPrefs.GetInt(bus.busID, 0) == 1;
+		bool purchase = SaveService.IsBusUnlocked(bus.busID);
 		lockIcon.SetActive(!purchase);
 
 		purchaseButton.gameObject.SetActive(!purchase);

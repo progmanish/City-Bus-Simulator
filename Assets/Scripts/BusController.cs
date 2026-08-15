@@ -23,6 +23,10 @@ public class BusController : MonoBehaviour
     [Header("Others")]
     [SerializeField] private GameObject arrows;
     [SerializeField] public GameObject headLights;
+    [SerializeField] public GameObject driver;
+
+    [Header("Configuration Asset")]
+    public BusConfig busConfig;
 
     [Header("Bus Settings")]
     public float busTorque = 1500f;
@@ -57,9 +61,20 @@ public class BusController : MonoBehaviour
     private float currentTorque;
     private Rigidbody rb;
     private Quaternion initialSteerRotation;
+    private AudioSource childAudioSource;
 
     void Start()
     {
+        if (busConfig != null)
+        {
+            busTorque = busConfig.busTorque;
+            brakeForce = busConfig.brakeForce;
+            maxFuel = busConfig.fuelCapacity;
+            maxSpeed = busConfig.maxSpeed;
+            idleConsumption = busConfig.idleConsumption;
+            runningConsumption = busConfig.runningConsumption;
+        }
+
         rb = GetComponent<Rigidbody>();
         if (com != null)
         {
@@ -78,6 +93,8 @@ public class BusController : MonoBehaviour
         }
         OnOffDirectionIndictor(false);
         if (headLights != null) headLights.SetActive(false);
+        if (driver != null) driver.SetActive(false);
+        childAudioSource = GetComponentInChildren<AudioSource>();
     }
 
     void Update()
@@ -104,10 +121,9 @@ public class BusController : MonoBehaviour
             HandleBrakes();
             HandleSteering();
             HandleWheels();
-            AudioSource source = GetComponentInChildren<AudioSource>();
-            if (source != null)
+            if (childAudioSource != null)
             {
-                source.Stop();
+                childAudioSource.Stop();
             }
             return;
         }

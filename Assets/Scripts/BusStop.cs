@@ -6,6 +6,7 @@ public class BusStop : MonoBehaviour
 {
 	private bool busInside;
 	private bool completed;
+	private int triggerCount = 0;
 
 	private PassengerSystem passengerSystem;
 
@@ -42,18 +43,28 @@ public class BusStop : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-		passengerSystem = other.GetComponentInParent<PassengerSystem>();
-		if (passengerSystem == null) return;
-		NPCs.SetActive(true);
+		PassengerSystem ps = other.GetComponentInParent<PassengerSystem>();
+		if (ps == null) return;
 
-		// Mission Active logic: Empty bus triggers route selection only if mission is not active
-		if (passengerSystem.currentPassengers == 0 && MissionManager.instance != null && !MissionManager.instance.missionActive)
+		passengerSystem = ps;
+		triggerCount++;
+
+		if (triggerCount > 1) return;
+
+		NPCs.SetActive(true);
+        GameManager.instance.activeBusController.driver.SetActive(true);
+
+        // Mission Active logic: Empty bus triggers route selection only if mission is not active
+        if (passengerSystem.currentPassengers == 0 && MissionManager.instance != null && !MissionManager.instance.missionActive)
 		{
 			if (UIManager.instance != null && UIManager.instance.routeSelectionPanel != null)
 			{
 				UIManager.instance.routeSelectionPanel.SetActive(true);
 			}
-			//Debug.Log("<color=cyan>Mission Active Triggered (0 passengers)!</color>");
+			if (stopCamera != null)
+			{
+				stopCamera.EnableCamera();
+			}
 			return;
 		}
 
@@ -76,41 +87,47 @@ public class BusStop : MonoBehaviour
 			if (stopCamera != null)
 			{
 				stopCamera.EnableCamera();
-				//Debug.Log("Camera Enable!!!");
 			}
 			MissionManager.instance.NotifyStopEntered(this);
 		}
-		//Debug.Log("<color=cyan>" + this.gameObject.ToString() + "</color>");
     }
 
     private void OnTriggerExit(Collider other)
     {
 		PassengerSystem _ps = other.GetComponentInParent<PassengerSystem>();
 		if(_ps == null) return;
-		NPCs.SetActive(false);
 
-		// Hide route selection if empty bus leaves active trigger zone (only if mission is not active)
-		if (_ps.currentPassengers == 0 && MissionManager.instance != null && !MissionManager.instance.missionActive)
+		triggerCount--;
+		if (triggerCount <= 0)
 		{
-			if (UIManager.instance != null && UIManager.instance.routeSelectionPanel != null)
+			triggerCount = 0;
+			NPCs.SetActive(false);
+            GameManager.instance.activeBusController.driver.SetActive(false);
+
+            // Hide route selection if empty bus leaves active trigger zone (only if mission is not active)
+            if (_ps.currentPassengers == 0 && MissionManager.instance != null && !MissionManager.instance.missionActive)
 			{
-				UIManager.instance.routeSelectionPanel.SetActive(false);
+				if (UIManager.instance != null && UIManager.instance.routeSelectionPanel != null)
+				{
+					UIManager.instance.routeSelectionPanel.SetActive(false);
+				}
 			}
-		}
 
-		busInside = false;
-		UIManager.instance.HideHUD();
-		if(stopCamera != null)
-		{
-			stopCamera.DisableCamera();
+			busInside = false;
+			UIManager.instance.HideHUD();
+			if(stopCamera != null)
+			{
+				stopCamera.DisableCamera();
+			}
+			UIManager.instance.ExitStopZone();
+			_ps.ResetBoardingState();
 		}
-		UIManager.instance.ExitStopZone();
-		_ps.ResetBoardingState();
     }
 
 	public void ResetStop()
 	{
 		busInside = false;
 		completed = false;
+		triggerCount = 0;
 	}
 }

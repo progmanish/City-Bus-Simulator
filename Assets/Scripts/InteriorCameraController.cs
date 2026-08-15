@@ -29,15 +29,23 @@ public class InteriorCameraController : MonoBehaviour
 			timer = 0f;
             currentRotation += swipeX * rotationSpeed;
             currentRotation = Mathf.Clamp(currentRotation, -maxRotation, maxRotation);
+			transform.localRotation = Quaternion.Euler(7f, 180 + currentRotation, 0);
         }
 		else
 		{
 			timer += Time.deltaTime;
 			if (timer > returnTime)
 			{
-				currentRotation = Mathf.Lerp(currentRotation, 0, returnSpeed * Time.deltaTime);
+				if (currentRotation != 0f)
+				{
+					currentRotation = Mathf.Lerp(currentRotation, 0, returnSpeed * Time.deltaTime);
+					if (Mathf.Abs(currentRotation) < 0.01f)
+					{
+						currentRotation = 0f;
+					}
+					transform.localRotation = Quaternion.Euler(7f, 180 + currentRotation, 0);
+				}
 			}
 		}
-		transform.localRotation = Quaternion.Euler(7f, 180 + currentRotation, 0);
 	}
 }

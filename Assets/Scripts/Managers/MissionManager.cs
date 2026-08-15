@@ -5,6 +5,11 @@ public class MissionManager : MonoBehaviour
 {
 	public static MissionManager instance;
 
+	public static event System.Action<RouteData> OnMissionStarted;
+	public static event System.Action OnMissionCompleted;
+	public static event System.Action OnMissionFailed;
+	public static event System.Action<BusStop, int> OnStopCompleted;
+
 	[Header("Mission Status")]
 	public bool missionActive;
 	public bool missionComplete;
@@ -19,7 +24,6 @@ public class MissionManager : MonoBehaviour
 	private int passengerServed = 0;
 	private int totalIncome = 0;
 
-    // Start is called before the first frame update
     private void Awake()
     {
         if (instance == null)
@@ -30,6 +34,18 @@ public class MissionManager : MonoBehaviour
 		{
 			Destroy(gameObject);
 		}
+    }
+
+    private void OnEnable()
+    {
+        PassengerSystem.OnBoardPassenger += BoardPassenger;
+        PassengerSystem.OnAddIncome += AddIncone;
+    }
+
+    private void OnDisable()
+    {
+        PassengerSystem.OnBoardPassenger -= BoardPassenger;
+        PassengerSystem.OnAddIncome -= AddIncone;
     }
 
 	public void SelectRoute(int index)
@@ -99,6 +115,7 @@ public class MissionManager : MonoBehaviour
 			stop.ResetStop();
 		}
 
+		OnMissionStarted?.Invoke(currentRoute);
 		//Debug.Log($"<color=cyan>Mission Activated!</color>");
 	}
 
@@ -122,6 +139,7 @@ public class MissionManager : MonoBehaviour
 		UIManager.instance.distanceHUD.ClearTarget();
         GameManager.instance.activeBusController.OnOffDirectionIndictor(missionActive);
 		UIManager.instance.distanceHUD.ClearTarget();
+		OnMissionCompleted?.Invoke();
         //Debug.Log($"<color=green>Mission Completed!</color>");
 
     }
@@ -132,9 +150,8 @@ public class MissionManager : MonoBehaviour
 
 		missionFailed = true;
 		missionActive = false;
-		UIManager.instance.missionFailedPanel.SetActive(missionFailed);
 		GameManager.instance.activeBusController.OnOffDirectionIndictor(missionActive);
-		UIManager.instance.distanceHUD.ClearTarget();
+		OnMissionFailed?.Invoke();
         //Debug.Log($"<color=red>Mission Failed!</color>");
     }
 
@@ -185,6 +202,7 @@ public class MissionManager : MonoBehaviour
             }
 
         }
+        OnStopCompleted?.Invoke(stop, currentStopIndex);
     }
 
     public bool AllStopsComplated()

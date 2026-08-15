@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0977e4e7fba31694c8e0eb226489167a, type: 3}
+  m_Name: 079_Bus
+  m_EditorClassIdentifier: Assembly-CSharp::BusConfig
+  busID: 
+  displayName: 
+  passengerCapacity: 30
+  fuelCapacity: 100
+  fuelEfficiency: 100
+  price: 5000
+  busTorque: 1500
+  brakeForce: 4000
+  maxSpeed: 40
+  idleConsumption: 0.02
+  runningConsumption: 0.06

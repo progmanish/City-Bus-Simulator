@@ -26,6 +26,18 @@ public class NPCManager : MonoBehaviour
 			Destroy(gameObject);
     }
 
+    private void OnEnable()
+    {
+        PassengerSystem.OnSpawnDeboardNPC += SpawnDeboardNPC;
+        PassengerSystem.OnSpawnBoardNPC += SpawnBoardNPC;
+    }
+
+    private void OnDisable()
+    {
+        PassengerSystem.OnSpawnDeboardNPC -= SpawnDeboardNPC;
+        PassengerSystem.OnSpawnBoardNPC -= SpawnBoardNPC;
+    }
+
     void Start()
     {
         PassengerSystem ps = FindAnyObjectByType<PassengerSystem>();
@@ -55,11 +67,13 @@ public class NPCManager : MonoBehaviour
 	{
 		float speed = 1.5f;
 
-		while(Vector3.Distance(npc.position, target) > 0.05f)
+		while(npc != null && Vector3.Distance(npc.position, target) > 0.05f)
 		{
 			npc.position = Vector3.MoveTowards(npc.position, target, speed * Time.deltaTime);
 			yield return null;
 		}
+
+		if (npc == null) yield break;
 
 		if (boarding)
 			EnableSeatedNPC();

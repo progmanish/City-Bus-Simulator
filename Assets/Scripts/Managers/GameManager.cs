@@ -14,8 +14,6 @@ public class GameManager : MonoBehaviour
 	public Gear gear = Gear.Driving;
 
 	public int playerMoney;
-	const string moneyID = "Player_Money";
-	const string selectedBus = "Selected_Bus";
 	const string selectedSteeringMode = "Steering_Mode";
 
     private bool fuelInput = false;
@@ -26,6 +24,27 @@ public class GameManager : MonoBehaviour
 		{
 			instance = this;
 			DontDestroyOnLoad(gameObject);
+			Application.targetFrameRate = 60;
+
+#if UNITY_ANDROID
+			// 1. Mobile Resolution Clamping (Huge GPU Fill-rate & Thermal Saver)
+			int targetWidth = 1280;
+			if (Screen.currentResolution.width > targetWidth)
+			{
+				float ratio = (float)Screen.currentResolution.height / Screen.currentResolution.width;
+				int newHeight = Mathf.RoundToInt(targetWidth * ratio);
+				Screen.SetResolution(targetWidth, newHeight, true);
+			}
+
+			// 2. Hardware Level Graphics Optimizations
+			QualitySettings.shadowDistance = 15f; 
+			QualitySettings.shadows = ShadowQuality.HardOnly; 
+			QualitySettings.antiAliasing = 0;
+			QualitySettings.vSyncCount = 0;
+
+			// 3. Physics Timestep Optimization (Saves CPU cycles)
+			Time.fixedDeltaTime = 0.0333f;
+#endif
 		}
 		else
 		{
@@ -34,13 +53,20 @@ public class GameManager : MonoBehaviour
 		LoadData();
 	}
 
+	private void OnEnable()
+	{
+		PassengerSystem.OnAddMoneyRequested += AddMoney;
+	}
+
+	private void OnDisable()
+	{
+		PassengerSystem.OnAddMoneyRequested -= AddMoney;
+	}
+
 	public void LoadData()
 	{
-		playerMoney = PlayerPrefs.GetInt(moneyID, 1000);
-		SaveMoney(playerMoney);
-
-		int savedMode = PlayerPrefs.GetInt(selectedSteeringMode, (int)SteeringMode.Button);
-		steeringMode = (SteeringMode)savedMode;
+		playerMoney = SaveService.GetMoney(50000);
+		steeringMode = (SteeringMode)SaveService.GetSteeringMode((int)SteeringMode.Button);
 	}
 
 	public string GetSelectedSteeringMode() => selectedSteeringMode;
@@ -53,7 +79,7 @@ public class GameManager : MonoBehaviour
 
 	public void SaveMoney(int amount)
 	{
-		PlayerPrefs.SetInt(moneyID, amount);
+		SaveService.SetMoney(amount);
 	}
 
     public bool SpendMoney(int amount)
@@ -70,27 +96,27 @@ public class GameManager : MonoBehaviour
 
 	public int GetPlayerMoney()
 	{
-		return PlayerPrefs.GetInt(moneyID, 2000);
+		return playerMoney;
 	}
 
 	public void SetSelectedBus(string busID)
 	{
-		PlayerPrefs.SetString(selectedBus, busID);
+		SaveService.SetSelectedBus(busID);
 	}
 
 	public string GetSelectedBus()
 	{
-		return PlayerPrefs.GetString(selectedBus, "");
+		return SaveService.GetSelectedBus("");
 	}
 
 	public void UnlockedBus(string busID)
 	{
-		PlayerPrefs.SetInt(busID, 1);
+		SaveService.UnlockBus(busID);
 	}
 
 	public bool IsBusUnlocked(string busID)
 	{
-		return PlayerPrefs.GetInt(busID, 0) == 1;
+		return SaveService.IsBusUnlocked(busID);
 	}
 
     public void SetSteering(float _input)

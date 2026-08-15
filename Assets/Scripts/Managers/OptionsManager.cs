@@ -31,6 +31,7 @@ public class OptionsManager : MonoBehaviour
 
     public void ClickSound()
     {
+        SoundManager.instance.PlayUIButtonClicks();
         panelSound.SetActive(true);
         panelControls.SetActive(false);
         panelAbout.SetActive(false);
@@ -39,6 +40,7 @@ public class OptionsManager : MonoBehaviour
 
     public void ClickControls()
     {
+        SoundManager.instance.PlayUIButtonClicks();
         panelSound.SetActive(false);
         panelControls.SetActive(true);
         panelAbout.SetActive(false);
@@ -49,6 +51,7 @@ public class OptionsManager : MonoBehaviour
 
     public void ClickAbout()
     {
+        SoundManager.instance.PlayUIButtonClicks();
         panelSound.SetActive(false);
         panelControls.SetActive(false);
         panelAbout.SetActive(true);
@@ -57,6 +60,7 @@ public class OptionsManager : MonoBehaviour
 
     public void ClickReset()
     {
+        SoundManager.instance.PlayUIButtonClicks();
         panelSound.SetActive(false);
         panelControls.SetActive(false);
         panelAbout.SetActive(false);
@@ -112,13 +116,12 @@ public class OptionsManager : MonoBehaviour
             GameManager.instance.steeringMode = newMode;
         }
 
-        PlayerPrefs.SetInt(GameManager.instance.GetSelectedSteeringMode(), (int)newMode);
-        PlayerPrefs.Save();
+        SaveService.SetSteeringMode((int)newMode);
 
         if (selectedLogo != null)
         {
             RectTransform rect = selectedLogo.GetComponent<RectTransform>();
-            Vector3 targetPos = (newMode == SteeringMode.Button) ? new Vector3(-215f, 0, 0) : new Vector3(215f, 0, 0);
+            Vector3 targetPos = (newMode == SteeringMode.Button) ? new Vector3(-240f, 0, 0) : new Vector3(240f, 0, 0);
             if (rect != null)
             {
                 rect.anchoredPosition = new Vector2(targetPos.x, targetPos.y);
@@ -134,7 +137,8 @@ public class OptionsManager : MonoBehaviour
     {
         if (_value)
         {
-            PlayerPrefs.DeleteAll();
+            SoundManager.instance.PlayUIButtonClicks();
+            SaveService.ResetAll();
             if (GameManager.instance != null)
             {
                 GameManager.instance.LoadData();
@@ -143,15 +147,14 @@ public class OptionsManager : MonoBehaviour
             {
                 BusManager.instance.SelectBus(null);
             }
-            PlayerPrefs.Save();
-            Debug.Log("Data Reset Success");
+            //Debug.Log("Data Reset Success");
         }
         OpenScene("SelectionMenu");
     }
 
     private void RefreshLogoPosition()
     {
-        int savedMode = PlayerPrefs.GetInt(GameManager.instance.GetSelectedSteeringMode(), (int)SteeringMode.Button);
+        int savedMode = GameManager.instance != null ? (int)GameManager.instance.steeringMode : (int)SteeringMode.Button;
         if (selectedLogo != null)
         {
             RectTransform rect = selectedLogo.GetComponent<RectTransform>();
@@ -169,6 +172,7 @@ public class OptionsManager : MonoBehaviour
 
     public void ExitGame()
     {
+        SoundManager.instance.PlayUIButtonClicks();
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #else

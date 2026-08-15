@@ -45,12 +45,12 @@ public class DistanceHUD : MonoBehaviour
 			if (distance >= 1000f)
 			{
 				text_Distance.text = (distance / 1000f).ToString("F1");
-				text_DistanceUnit.text = "km";
+				if (text_DistanceUnit != null) text_DistanceUnit.text = "km";
 			}
 			else
 			{
 				text_Distance.text = Mathf.RoundToInt(distance).ToString();
-                text_DistanceUnit.text = "m";
+                if (text_DistanceUnit != null) text_DistanceUnit.text = "m";
             }
 		}
 	}

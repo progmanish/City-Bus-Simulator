@@ -12,6 +12,6 @@ public class BusSpawnner : MonoBehaviour
             return;
         }
 
-        Instantiate(BusManager.instance.selectedBusPrefab, spawnPoint.localPosition, spawnPoint.localRotation);
+        Instantiate(BusManager.instance.selectedBusPrefab, spawnPoint.position, spawnPoint.rotation);
     }
 }

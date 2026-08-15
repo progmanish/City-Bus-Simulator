@@ -29,7 +29,6 @@ public class UIManager : MonoBehaviour
 
 	[Header("Mission Summary")]
 	public GameObject missionSummaryPanel;
-	public GameObject missionFailedPanel;
 	public Text routeName;
 	public Text passengerServed;
 	public Text income;
@@ -43,20 +42,44 @@ public class UIManager : MonoBehaviour
 	public bool isFinalStop = false;
 	private bool insideStopTrigger;
 
+	private int cachedMoney = -1;
+	private int cachedSpeed = -1;
+	private float cachedFuel = -1f;
+
 	private void Awake()
 	{
 		if (instance == null)
 			instance = this;
 		else
 			Destroy(gameObject);
-	}
 
-	// Start is called before the first frame update
-	void Start()
-	{
+		insideStopTrigger = false;
+		gatesOpen = false;
+		HideHUD();
 		ExitStopZone();
 		UpdateSteeringUI();
 		LightsOnOff(false);
+	}
+
+	private void OnEnable()
+	{
+		PassengerSystem.OnBoardingStarted += HandleBoardingStarted;
+		PassengerSystem.OnStatusTextChanged += SetStatusText;
+		PassengerSystem.OnPassengerCountChanged += SetPassengerText;
+		PassengerSystem.OnShowSummaryRequested += ShowSummary;
+	}
+
+	private void OnDisable()
+	{
+		PassengerSystem.OnBoardingStarted -= HandleBoardingStarted;
+		PassengerSystem.OnStatusTextChanged -= SetStatusText;
+		PassengerSystem.OnPassengerCountChanged -= SetPassengerText;
+		PassengerSystem.OnShowSummaryRequested -= ShowSummary;
+	}
+
+	private void HandleBoardingStarted(PassengerSystem ps)
+	{
+		ShowHUD();
 	}
 
 	// Update is called once per frame
@@ -66,21 +89,40 @@ public class UIManager : MonoBehaviour
 		{
 			if (GameManager.instance.state == GameState.Driving)
 			{
-				pauseUI.SetActive(false);
-				drivingDashboard.SetActive(true);
+				if (pauseUI != null && pauseUI.activeSelf) pauseUI.SetActive(false);
+				if (drivingDashboard != null && !drivingDashboard.activeSelf) drivingDashboard.SetActive(true);
 			}
 			else if (GameManager.instance.state == GameState.Pause)
 			{
-				pauseUI.SetActive(true);
-				drivingDashboard.SetActive(false);
+				if (pauseUI != null && !pauseUI.activeSelf) pauseUI.SetActive(true);
+				if (drivingDashboard != null && drivingDashboard.activeSelf) drivingDashboard.SetActive(false);
+			}
+
+			int currentMoney = GameManager.instance.GetPlayerMoney();
+			if (currentMoney != cachedMoney)
+			{
+				cachedMoney = currentMoney;
+				if (text_Money != null) text_Money.text = currentMoney.ToString();
+			}
+
+			if (GameManager.instance.activeBusController != null)
+			{
+				float speedKmh = GameManager.instance.activeBusController.GetComponent<Rigidbody>().linearVelocity.magnitude * 3.6f;
+				int speedInt = Mathf.RoundToInt(speedKmh);
+				if (speedInt != cachedSpeed)
+				{
+					cachedSpeed = speedInt;
+					if (text_SpeedInKmPerhour != null) text_SpeedInKmPerhour.text = speedInt.ToString();
+				}
+
+				float currentFuel = GameManager.instance.activeBusController.currentFuel;
+				if (Mathf.Abs(currentFuel - cachedFuel) > 0.05f)
+				{
+					cachedFuel = currentFuel;
+					if (text_Liter != null) text_Liter.text = currentFuel.ToString("F1");
+				}
 			}
 		}
-		text_Money.text = GameManager.instance.GetPlayerMoney().ToString();
-		if (GameManager.instance.activeBusController != null)
-		{
-			text_SpeedInKmPerhour.text = GameManager.instance.activeBusController.GetSpeedInKmPerHour();
-			text_Liter.text = GameManager.instance.activeBusController.currentFuel.ToString("F1");
-        }
 	}
 
 	public void PauseButton()

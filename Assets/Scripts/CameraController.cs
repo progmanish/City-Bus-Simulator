@@ -1,31 +1,58 @@
-using System.Collections;
 using UnityEngine;
 
 public class CameraController : MonoBehaviour
 {
 	private GameObject exteriorCamera;
 	private GameObject interiorCamera;
-
 	private InteriorCameraController interiorCameraController;
 
-	bool isInterior;
-	// Start is called before the first frame update
-	void Start()
+	private Camera exteriorCameraComp;
+	private bool wasInteriorBeforeStop;
+
+	public bool isInterior
 	{
-		StartCoroutine(FindAndSet());
+		get
+		{
+			if (interiorCamera != null) return interiorCamera.activeSelf;
+			return false;
+		}
 	}
 
-	IEnumerator FindAndSet()
+	void Start()
 	{
-		yield return new WaitForSeconds(0.1f);
-        exteriorCamera = GameObject.FindAnyObjectByType<FollowCamera>().gameObject;
-        if (interiorCamera == null) interiorCameraController = GameObject.FindAnyObjectByType<InteriorCameraController>();
-        interiorCamera = interiorCameraController.gameObject;
-        SetExterior();
-    }
+		StartCoroutine(InitializeCameras());
+	}
+
+	private System.Collections.IEnumerator InitializeCameras()
+	{
+		while (!FindAndSet())
+		{
+			yield return null;
+		}
+		SetExterior(); 
+	}
+
+	private bool FindAndSet()
+	{
+		if (exteriorCamera != null && interiorCamera != null) return true;
+
+		FollowCamera fc = FindFirstObjectByType<FollowCamera>();
+		if (fc != null)
+		{
+			exteriorCamera = fc.gameObject;
+			exteriorCameraComp = fc.GetComponent<Camera>();
+		}
+
+		interiorCameraController = FindFirstObjectByType<InteriorCameraController>();
+		if (interiorCameraController != null) interiorCamera = interiorCameraController.gameObject;
+
+		return (exteriorCamera != null && interiorCamera != null);
+	}
 
 	public void ToogleCamera()
 	{
+		if (!FindAndSet()) return;
+
 		if (isInterior)
 		{
 			SetExterior();
@@ -38,19 +65,49 @@ public class CameraController : MonoBehaviour
 
 	public void SetExterior()
 	{
-		isInterior = false;
+		if (!FindAndSet()) return;
+
+		if (exteriorCameraComp != null)exteriorCameraComp.enabled = true;
+
 		exteriorCamera.SetActive(true);
 		interiorCamera.SetActive(false);
 
-		interiorCameraController.SetActive(false);
+		if (interiorCameraController != null) interiorCameraController.SetActive(false);
+
 	}
 
     public void SetInterior()
     {
-        isInterior = true;
+		if (!FindAndSet()) return;
+
+		if (exteriorCameraComp != null) exteriorCameraComp.enabled = true; 
+
         interiorCamera.SetActive(true);
         exteriorCamera.SetActive(true);
 
-        interiorCameraController.SetActive(true);
+		if (interiorCameraController != null) interiorCameraController.SetActive(true);
+
     }
+
+	public void EnterStopMode()
+	{
+		if (!FindAndSet()) return;
+
+		wasInteriorBeforeStop = isInterior;
+		if (exteriorCameraComp != null) exteriorCameraComp.enabled = false;
+		if (interiorCamera != null) interiorCamera.SetActive(false);
+		if (interiorCameraController != null) interiorCameraController.SetActive(false);
+	}
+
+	public void ExitStopMode()
+	{
+		if (wasInteriorBeforeStop)
+		{
+			SetInterior();
+		}
+		else
+		{
+			SetExterior();
+		}
+	}
 }

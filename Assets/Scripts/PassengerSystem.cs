@@ -19,28 +19,40 @@ public class PassengerSystem : MonoBehaviour
 	private int toBoard;
 	private int toDeboard;
 
+	// Observer Events
+	public static event System.Action<PassengerSystem> OnBoardingStarted;
+	public static event System.Action<string> OnStatusTextChanged;
+	public static event System.Action<int, int> OnPassengerCountChanged;
+	public static event System.Action OnSpawnDeboardNPC;
+	public static event System.Action OnSpawnBoardNPC;
+	public static event System.Action<int> OnBoardPassenger;
+	public static event System.Action<int> OnAddIncome;
+	public static event System.Action<string, int, int> OnShowSummaryRequested;
+	public static event System.Action<int> OnAddMoneyRequested;
+
 	public void StartBoardingProcess()
 	{
 		boardingFinished = false;
 
-		UIManager.instance.ShowHUD();
+		OnBoardingStarted?.Invoke(this);
 
-		toDeboard = UIManager.instance.isFinalStop ? currentPassengers : Mathf.RoundToInt(currentPassengers * Random.Range(0f, maxDeboardPercent));
+		bool isFinal = (UIManager.instance != null && UIManager.instance.isFinalStop);
+		toDeboard = isFinal ? currentPassengers : Mathf.RoundToInt(currentPassengers * Random.Range(0f, maxDeboardPercent));
 		toBoard = Random.Range(minBoard, maxBoard + 1);
 		toBoard = Mathf.Min(toBoard, maxCapacity - currentPassengers + toDeboard);
 
-		if (UIManager.instance.isFinalStop) toBoard = 0;
+		if (isFinal) toBoard = 0;
 
 		if (toDeboard > 0)
 		{
-			UIManager.instance.SetStatusText("Deboarding Passengers...");
+			OnStatusTextChanged?.Invoke("Deboarding Passengers...");
 		}
 		else
 		{
-			UIManager.instance.SetStatusText("Boarding Passengers...");
+			OnStatusTextChanged?.Invoke("Boarding Passengers...");
 		}
 
-		UIManager.instance.SetPassengerText(currentPassengers, maxCapacity);
+		OnPassengerCountChanged?.Invoke(currentPassengers, maxCapacity);
 		StartCoroutine(DeboardRoutine());
 	}
 
@@ -49,52 +61,47 @@ public class PassengerSystem : MonoBehaviour
 		for (int i = 0; i < toDeboard; i++)
 		{
 			currentPassengers--;
-			if(NPCManager.instance != null)
-			{
-				NPCManager.instance.SpawnDeboardNPC();
-			}
-			UIManager.instance.SetPassengerText(currentPassengers, maxCapacity);
+			OnSpawnDeboardNPC?.Invoke();
+			OnPassengerCountChanged?.Invoke(currentPassengers, maxCapacity);
             yield return new WaitForSeconds(deboardInterval);
 		}
 		StartCoroutine(BoardRoutine());
-
 	}
 
 	IEnumerator BoardRoutine()
 	{
 		if (toBoard > 0)
 		{
-			UIManager.instance.SetStatusText("Boarding Passengers...");
+			OnStatusTextChanged?.Invoke("Boarding Passengers...");
 		}
 
 		for (int i = 0; i < toBoard; i++)
 		{
 			currentPassengers++;
-            if (NPCManager.instance != null)
-            {
-                NPCManager.instance.SpawnBoardNPC();
-            }
-            UIManager.instance.SetPassengerText(currentPassengers, maxCapacity);
-			MissionManager.instance.BoardPassenger(1);
+			OnSpawnBoardNPC?.Invoke();
+			OnPassengerCountChanged?.Invoke(currentPassengers, maxCapacity);
+			OnBoardPassenger?.Invoke(1);
             yield return new WaitForSeconds(boardInterval);
         }
 
 		boardingFinished = true;
-		MissionManager.instance.AddIncone(currentPassengers);
-        UIManager.instance.SetStatusText("Boarding Complete. Close the doors...");
+		OnAddIncome?.Invoke(currentPassengers);
+		OnStatusTextChanged?.Invoke("Boarding Complete. Close the doors...");
 
-		if (UIManager.instance.isFinalStop)
+		if (UIManager.instance != null && UIManager.instance.isFinalStop)
 		{
-			UIManager.instance.ShowSummary(
-				MissionManager.instance.MissionName(), MissionManager.instance.Passengers(), MissionManager.instance.Income());
-			GameManager.instance.AddMoney(MissionManager.instance.Income());
+			if (MissionManager.instance != null)
+			{
+				OnShowSummaryRequested?.Invoke(
+					MissionManager.instance.MissionName(), MissionManager.instance.Passengers(), MissionManager.instance.Income());
+				OnAddMoneyRequested?.Invoke(MissionManager.instance.Income());
+			}
 		}
     }
 
     public void ResetBoardingState()
 	{
 		boardingFinished = false;
-        UIManager.instance.SetStatusText("Boarding Complete. Close the doors...");
-
-    }
+		OnStatusTextChanged?.Invoke("Boarding Complete. Close the doors...");
+	}
 }
